@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1c1917">
+    <title>影視史學―《活著》中的歷史變遷：「歷史事件對照時間軸」學習單</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts: Noto Serif TC 與 Noto Sans TC 提升歷史人文質感與閱讀性 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+    <!-- 引入 FontAwesome 圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f1ea; /* 溫潤的宣紙/書卷底色 */
+            color: #2c2a29;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        h1, h2, .serif-title {
+            font-family: 'Noto Serif TC', serif;
+        }
+        /* iOS 與 Android 防止點擊輸入框時畫面自動異常放大 (確保字體 >= 16px) */
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select,
+        textarea {
+            font-size: 16px !important;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        /* 自訂捲軸樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eae5d9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b5aa99;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8c8273;
+        }
+        /* 自動伸縮文字框基礎樣式 */
+        .auto-expand {
+            resize: none;
+            overflow: hidden;
+            min-height: 46px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            line-height: 1.6;
+        }
+        .auto-expand-lg {
+            min-height: 96px;
+        }
+        /* 提升行動裝置觸控按鈕反應 */
+        button {
+            touch-action: manipulation;
+        }
+        /* 時間軸連接線 */
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 1rem;
+            width: 3px;
+            background: linear-gradient(to bottom, #991b1b, #b45309, #374151);
+            border-radius: 999px;
+        }
+        @media (min-width: 768px) {
+            .timeline-line::before {
+                left: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 頂部導覽列 (支援 iOS 瀏海安全區) -->
+    <header class="bg-stone-900 text-stone-100 shadow-lg sticky top-0 z-40 border-b-4 border-red-800 pt-[env(safe-area-inset-top)]">
+        <div class="max-w-5xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2.5 min-w-0">
+                <div class="bg-red-800 text-amber-100 p-2 rounded-lg shadow-inner shrink-0">
+                    <i class="fa-solid fa-film text-lg sm:text-xl"></i>
+                </div>
+                <div class="truncate">
+                    <span class="text-[11px] sm:text-xs text-amber-400 tracking-wider block font-medium truncate">影視史學數位學習單</span>
+                    <h1 class="text-sm sm:text-lg font-bold tracking-wide text-stone-50 truncate">《活著》中的歷史變遷</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                <button id="btnStudentView" onclick="switchToStudentView()" class="px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-800 text-white shadow transition active:scale-95 hover:bg-red-700 min-h-[40px]">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i>學生區
+                </button>
+                <button id="btnTeacherModal" onclick="openPasswordModal()" class="px-3 py-2 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-stone-700 text-stone-200 border border-stone-600 shadow transition active:scale-95 hover:bg-stone-600 hover:text-white min-h-[40px]">
+                    <i class="fa-solid fa-chalkboard-user mr-1"></i>教師後台
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 全域提示訊息框 (Toast Notification - 手機版置中上方避免被鍵盤遮擋) -->
+    <div id="toastContainer" class="fixed top-20 sm:top-auto sm:bottom-5 left-4 right-4 sm:left-auto sm:right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ==================== 學生填寫視圖 ==================== -->
+    <main id="studentView" class="flex-grow max-w-4xl w-full mx-auto px-4 py-8">
+        <!-- 學習單標題卡片 -->
+        <div class="bg-white rounded-2xl shadow-md border border-stone-200 overflow-hidden mb-8">
+            <div class="bg-gradient-to-r from-stone-800 via-stone-900 to-red-950 p-6 sm:p-8 text-white relative">
+                <div class="inline-block px-3 py-1 bg-red-800/80 border border-red-600/50 rounded-full text-xs text-amber-200 mb-3 tracking-wider">
+                    歷史事件對照時間軸
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold leading-snug mb-2">
+                    影視史學―《活著》中的歷史變遷
+                </h2>
+                <p class="text-stone-300 text-sm sm:text-base">
+                    透過張藝謀導演電影《活著》中福貴一家的命運起伏，對照中國近現代重大歷史轉折。
+                </p>
+            </div>
+
+            <!-- 學生基本資料填寫區 -->
+            <div class="p-6 bg-amber-50/60 border-b border-stone-200">
+                <h3 class="text-sm font-bold text-stone-700 uppercase tracking-wider mb-3 flex items-center">
+                    <i class="fa-solid fa-id-card text-red-800 mr-2"></i>學生基本資料（必填）
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">班級 <span class="text-red-600">*</span></label>
+                        <input type="text" id="studentClass" placeholder="例如：高二忠" class="w-full px-3.5 py-2 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">座號 <span class="text-red-600">*</span></label>
+                        <input type="text" inputmode="numeric" id="studentSeat" placeholder="例如：15" class="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">姓名 <span class="text-red-600">*</span></label>
+                        <input type="text" id="studentName" placeholder="請輸入真實姓名" class="w-full px-3.5 py-2 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 填寫說明 -->
+            <div class="p-6 bg-white">
+                <div class="bg-stone-100 rounded-xl p-4 border-l-4 border-amber-600">
+                    <h4 class="font-bold text-stone-800 mb-2 flex items-center">
+                        <i class="fa-solid fa-circle-info text-amber-600 mr-2"></i>【填寫說明】
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-sm text-stone-700 leading-relaxed">
+                        <li>請在老師進行「電影前導與歷史背景講授」時，根據<strong>年代與事件簡述提示</strong>，填入正確的<strong>歷史事件名稱</strong>。</li>
+                        <li>請在觀看電影的過程中，紀錄電影中<strong>哪一個具體情節 / 片段</strong>對應了該項歷史事件（輸入框會隨著您的文字內容自動延展放大）。</li>
+                        <li>全部填寫完成後，請點擊頁面最底部的<strong>「完成並送出學習單」</strong>按鈕。</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- 時間軸題目列表容器 -->
+        <div id="timelineQuestionsContainer" class="relative timeline-line space-y-8 pb-6">
+            <!-- 題目將由 JavaScript 動態渲染 -->
+        </div>
+
+        <!-- 底部送出按鈕區塊 -->
+        <div class="mt-8 bg-white rounded-2xl shadow-md border border-stone-200 p-6 sm:p-8 text-center">
+            <p class="text-sm text-stone-600 mb-4">
+                請確認班級、座號、姓名及各年代欄位皆已填寫完畢，送出後將傳送至教師批改系統。
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button type="button" onclick="confirmResetForm()" class="w-full sm:w-auto px-6 py-3 rounded-xl border border-stone-300 text-stone-600 font-medium hover:bg-stone-100 transition">
+                    <i class="fa-solid fa-rotate-left mr-2"></i>清空重填
+                </button>
+                <button type="button" id="submitBtn" onclick="submitWorksheet()" class="w-full sm:w-auto px-10 py-3.5 rounded-xl bg-red-800 text-white font-bold text-lg shadow-lg hover:bg-red-700 active:transform active:scale-95 transition flex items-center justify-center">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>完成
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== 教師後台視圖 ==================== -->
+    <section id="teacherView" class="hidden flex-grow max-w-6xl w-full mx-auto px-4 py-8">
+        <!-- 後台標題與統計列 -->
+        <div class="bg-stone-900 text-white rounded-2xl p-6 shadow-lg mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-amber-500">
+            <div>
+                <div class="flex items-center space-x-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>教師專屬批改與成績管理系統</span>
+                </div>
+                <h2 class="text-2xl font-bold">《活著》歷史學習單 — 學生作答總覽</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="bg-stone-800 px-4 py-2 rounded-xl border border-stone-700 text-center">
+                    <span class="text-xs text-stone-400 block">已繳交份數</span>
+                    <span id="statTotalCount" class="text-xl font-bold text-white">0</span>
+                </div>
+                <div class="bg-stone-800 px-4 py-2 rounded-xl border border-stone-700 text-center">
+                    <span class="text-xs text-stone-400 block">已批改份數</span>
+                    <span id="statGradedCount" class="text-xl font-bold text-emerald-400">0</span>
+                </div>
+                <button onclick="exportToCSV()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-sm font-bold shadow transition flex items-center">
+                    <i class="fa-solid fa-file-csv mr-2"></i>匯出成績 CSV
+                </button>
+                <button onclick="logoutTeacher()" class="px-4 py-2.5 bg-stone-700 hover:bg-stone-600 text-stone-200 rounded-xl text-sm font-medium transition">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i>登出後台
+                </button>
+            </div>
+        </div>
+
+        <!-- 篩選與搜尋工具列 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 mb-6 flex flex-col sm:flex-row gap-3 justify-between items-center">
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-stone-400"></i>
+                <input type="text" id="searchSubmissionInput" oninput="renderTeacherTable()" placeholder="搜尋班級、座號或姓名..." class="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-800">
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                <label class="text-xs font-bold text-stone-600">狀態篩選：</label>
+                <select id="filterStatusSelect" onchange="renderTeacherTable()" class="px-3 py-2 bg-stone-50 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-800">
+                    <option value="all">全部紀錄</option>
+                    <option value="ungraded">待批改</option>
+                    <option value="graded">已批改</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 學生繳交列表 (桌面版表格 + 手機版卡片雙適配) -->
+        <div class="bg-white rounded-2xl shadow-md border border-stone-200 overflow-hidden">
+            <!-- 桌面版表格 (md 以上顯示) -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-stone-100 border-b border-stone-200 text-stone-700 text-xs uppercase tracking-wider">
+                            <th class="py-3.5 px-4 font-bold">狀態</th>
+                            <th class="py-3.5 px-4 font-bold">班級</th>
+                            <th class="py-3.5 px-4 font-bold">座號</th>
+                            <th class="py-3.5 px-4 font-bold">姓名</th>
+                            <th class="py-3.5 px-4 font-bold">繳交時間</th>
+                            <th class="py-3.5 px-4 font-bold">得分</th>
+                            <th class="py-3.5 px-4 font-bold text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionsTableBody" class="divide-y divide-stone-200 text-sm">
+                        <!-- 列表資料由 JS 動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 手機版卡片列表 (md 以下顯示，方便單手觸控批改) -->
+            <div id="submissionsMobileCards" class="md:hidden divide-y divide-stone-200">
+                <!-- 手機版卡片由 JS 動態生成 -->
+            </div>
+
+            <div id="emptySubmissionsMsg" class="hidden py-12 text-center text-stone-500">
+                <i class="fa-regular fa-folder-open text-4xl mb-3 text-stone-300 block"></i>
+                <p>目前尚無符合條件的學生作答紀錄。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 密碼驗證彈窗 (Modal) ==================== -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-stone-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-stone-200 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-stone-900 flex items-center">
+                    <i class="fa-solid fa-lock text-red-800 mr-2"></i>進入教師批改後台
+                </h3>
+                <button onclick="closePasswordModal()" class="text-stone-400 hover:text-stone-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-sm text-stone-600 mb-4">請輸入教師管理密碼以檢視並批改學生學習單：</p>
+            <form onsubmit="verifyTeacherPassword(event)">
+                <input type="password" inputmode="numeric" id="teacherPasswordInput" placeholder="請輸入密碼" class="w-full px-4 py-3 border border-stone-300 rounded-xl mb-2 focus:outline-none focus:ring-2 focus:ring-red-800 text-center tracking-widest text-lg" required>
+                <p id="passwordErrorMsg" class="text-xs text-red-600 font-medium mb-4 hidden">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i>密碼錯誤，請重新輸入！
+                </p>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 text-sm font-medium">取消</button>
+                    <button type="submit" class="px-6 py-2 rounded-xl bg-stone-900 text-white hover:bg-stone-800 text-sm font-bold shadow">確認登入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== 教師批改與評分詳細彈窗 (Grading Modal) ==================== -->
+    <div id="gradingModal" class="hidden fixed inset-0 bg-stone-900/75 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+        <div class="bg-stone-50 rounded-t-2xl sm:rounded-2xl max-w-4xl w-full h-[94vh] sm:h-auto sm:max-h-[92vh] flex flex-col shadow-2xl border border-stone-300 overflow-hidden">
+            <!-- 彈窗頂部 -->
+            <div class="bg-stone-900 text-white px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between shrink-0">
+                <div class="min-w-0 pr-2">
+                    <span class="text-xs text-amber-400 block">學習單線上批改與評分</span>
+                    <h3 id="gradingStudentTitle" class="text-base sm:text-lg font-bold truncate">班級：-- ｜ 座號：-- ｜ 姓名：--</h3>
+                </div>
+                <button onclick="closeGradingModal()" class="text-stone-400 hover:text-white p-2.5 rounded-lg hover:bg-stone-800 transition shrink-0">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- 彈窗內容滾動區 (學生作答內容 + 教師單題批註) -->
+            <div id="gradingModalBody" class="p-4 sm:p-6 overflow-y-auto space-y-5 flex-grow overscroll-contain">
+                <!-- 由 JS 動態填入各年代題目與學生作答 -->
+            </div>
+
+            <!-- 彈窗底部總評與儲存列 (適配手機底部安全區) -->
+            <div class="bg-white border-t border-stone-200 p-3.5 sm:px-6 pb-[calc(0.875rem+env(safe-area-inset-bottom))] shrink-0">
+                <div class="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-center justify-between">
+                    <div class="flex-grow flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                        <div class="w-full sm:w-36 shrink-0">
+                            <label class="block text-xs font-bold text-stone-700 mb-1">總分 (0-100分)</label>
+                            <input type="number" inputmode="numeric" id="gradingScoreInput" min="0" max="100" placeholder="輸入分數" class="w-full px-3 py-2 border-2 border-amber-500 rounded-xl font-bold text-lg text-red-800 focus:outline-none focus:ring-2 focus:ring-amber-600">
+                        </div>
+                        <div class="flex-grow">
+                            <label class="block text-xs font-bold text-stone-700 mb-1">教師總評與回饋建議</label>
+                            <textarea id="gradingCommentInput" rows="1" placeholder="輸入給學生的整體評語（自動伸縮）..." class="auto-expand w-full px-3 py-2 border border-stone-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-stone-800"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-end gap-2 pt-1 md:pt-5">
+                        <button type="button" onclick="deleteCurrentSubmission()" class="px-3.5 py-2.5 rounded-xl text-red-600 hover:bg-red-50 active:bg-red-100 text-sm font-medium transition min-h-[44px]" title="刪除此份紀錄">
+                            <i class="fa-solid fa-trash-can mr-1 sm:mr-0"></i><span class="sm:hidden">刪除</span>
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="closeGradingModal()" class="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-100 text-sm font-medium transition min-h-[44px]">
+                                關閉
+                            </button>
+                            <button type="button" onclick="saveGrading()" class="px-5 sm:px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white text-sm font-bold shadow-md transition flex items-center min-h-[44px]">
+                                <i class="fa-solid fa-floppy-disk mr-1.5"></i>儲存批改
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自訂確認對話框 (取代 window.confirm) -->
+    <div id="customConfirmModal" class="hidden fixed inset-0 bg-stone-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-stone-200">
+            <h3 id="confirmModalTitle" class="text-lg font-bold text-stone-900 mb-2">確認操作</h3>
+            <p id="confirmModalMessage" class="text-sm text-stone-600 mb-6">確定要執行此動作嗎？</p>
+            <div class="flex justify-end space-x-2">
+                <button id="confirmModalCancel" class="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 text-sm font-medium">取消</button>
+                <button id="confirmModalOk" class="px-5 py-2 rounded-xl bg-red-800 text-white hover:bg-red-700 text-sm font-bold shadow">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK 與應用程式核心邏輯 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 1. 學習單題庫結構定義（完全對應使用者提供之文本）
+        const WORKSHEET_ITEMS = [
+            {
+                id: "item_1945",
+                era: "1945年",
+                summary: "對日抗戰勝利，日本宣佈無條件投降，中國擺脫八年抗戰與殖民壓迫，社會進入後戰轉型與秩序重組期。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "抗戰勝利（八年抗戰結束）"
+            },
+            {
+                id: "item_1946",
+                era: "1946年",
+                summary: "國共談判破裂爆發全面內戰，北方鄉村遭強制動員與拉伕充軍，社會陷入嚴重的軍事對峙與物價飛漲。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "國共內戰"
+            },
+            {
+                id: "item_1949",
+                era: "1949年",
+                summary: "內戰局勢底定，國民黨政府遷臺；中華人民共和國於北京宣告成立，政權更迭徹底改變了鄉村階層與個體命運。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "中華人民共和國成立（中共建政）"
+            },
+            {
+                id: "item_1950_early",
+                era: "1950年代初",
+                summary: "新政權在全國農村推行大規模階層改造，沒收地主土地與財產分配給無地農民，徹底顛覆傳統農村地主階級。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "土地改革運動（土改）"
+            },
+            {
+                id: "item_1950_late",
+                era: "1950年代末",
+                summary: "官方推行「超英趕美」與全民大煉鋼鐵，鄉村成立人民公社與大食堂，後因極端狂熱與自然災害引發嚴重大饑荒。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "（與人民公社化運動）",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "大躍進"
+            },
+            {
+                id: "item_1966",
+                era: "1966年開始",
+                summary: "毛澤東發動全社會政治運動，號召紅衛兵「破四舊」、批鬥走資派與知識份子，法治、專業體制與傳統文化陷入浩劫。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "文化大革命（文革）"
+            },
+            {
+                id: "item_1976",
+                era: "1976年",
+                summary: "毛澤東逝世後，王洪文、張春橋、江青、姚文元四人被捕，標誌著十年文革浩劫的結束與極左政治路線的衰退。",
+                eventLabel: "✍️ 事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "粉碎四人幫（文革結束）"
+            },
+            {
+                id: "item_1970_late",
+                era: "1970年代末",
+                summary: "鄧小平成為改革重要的領導者，將全黨工作重點轉移至社會主義現代化建設，逐步展開經濟體制改革與對外開放。",
+                eventLabel: "✍️ 歷史事件名稱：",
+                eventSuffix: "",
+                moviePrompt: "🎬 電影中的哪一片段與此事件有關？：",
+                referenceAnswer: "改革開放（十一屆三中全會）"
+            }
+        ];
+
+        // 全域狀態管理
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let useCloudStorage = false;
+        let submissionsList = []; // 儲存所有學生提交紀錄
+        let currentGradingId = null; // 目前正在批改的紀錄 ID
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'living-history-worksheet';
+
+        // 2. 初始化 Firebase 雲端資料庫（支援跨裝置即時同步教師後台）
+        async function initStorage() {
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    currentUser = auth.currentUser;
+                    if (currentUser) {
+                        useCloudStorage = true;
+                        listenToCloudSubmissions();
+                    }
+                }
+            } catch (error) {
+                console.warn("雲端資料庫初始化略過，切換至單機記憶模式：", error);
+                useCloudStorage = false;
+            }
+        }
+
+        // 監聽雲端學習單繳交紀錄
+        function listenToCloudSubmissions() {
+            if (!useCloudStorage || !currentUser || !db) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'worksheets');
+            onSnapshot(colRef, (snapshot) => {
+                const list = [];
+                snapshot.forEach((docSnap) => {
+                    list.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                // 依據繳交時間由新到舊排序（在記憶體中排序，遵守無複雜查詢規範）
+                list.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+                submissionsList = list;
+                updateTeacherStats();
+                renderTeacherTable();
+            }, (err) => {
+                console.error("讀取雲端資料發生錯誤：", err);
+            });
+        }
+
+        // 3. 渲染學生時間軸填答區
+        function renderStudentQuestions() {
+            const container = document.getElementById('timelineQuestionsContainer');
+            container.innerHTML = '';
+
+            WORKSHEET_ITEMS.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "relative pl-9 sm:pl-12 md:pl-16";
+                card.innerHTML = `
+                    <!-- 時間軸圓點標記 -->
+                    <div class="absolute left-1 sm:left-2 md:left-5 top-5 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-red-800 border-4 border-[#f4f1ea] shadow flex items-center justify-center text-white text-xs font-bold z-10">
+                        ${index + 1}
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden hover:shadow-md transition">
+                        <!-- 年代標頭 -->
+                        <div class="bg-stone-800 text-amber-300 px-5 py-3 flex items-center justify-between">
+                            <span class="font-bold text-lg tracking-wider serif-title">【${item.era}】</span>
+                            <span class="text-xs text-stone-400">歷史節點 ${index + 1} / ${WORKSHEET_ITEMS.length}</span>
+                        </div>
+
+                        <div class="p-5 sm:p-6 space-y-5">
+                            <!-- 事件簡述 -->
+                            <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-4 text-stone-800 text-sm sm:text-base leading-relaxed">
+                                <span class="font-bold text-amber-900">💡 事件簡述：</span>${item.summary}
+                            </div>
+
+                            <!-- 歷史事件名稱輸入區 (自動伸縮) -->
+                            <div>
+                                <label for="event_${item.id}" class="block font-bold text-stone-800 text-sm sm:text-base mb-2">
+                                    ${item.eventLabel}
+                                    ${item.eventSuffix ? `<span class="text-stone-600 font-normal">${item.eventSuffix}</span>` : ''}
+                                </label>
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <textarea 
+                                        id="event_${item.id}" 
+                                        rows="1" 
+                                        placeholder="請輸入對應的歷史事件名稱..." 
+                                        class="auto-expand w-full px-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-stone-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <!-- 觀影紀錄區 (自動伸縮) -->
+                            <div>
+                                <label for="movie_${item.id}" class="block font-bold text-stone-800 text-sm sm:text-base mb-2">
+                                    ${item.moviePrompt}
+                                </label>
+                                <div class="bg-stone-100/80 p-3 rounded-xl border border-stone-200">
+                                    <div class="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5 flex items-center">
+                                        <i class="fa-solid fa-clapperboard mr-1.5 text-red-800"></i>[ 觀影紀錄區 ]（輸入框將隨字數自動延展）
+                                    </div>
+                                    <textarea 
+                                        id="movie_${item.id}" 
+                                        rows="3" 
+                                        placeholder="請具體描述電影《活著》中的人物遭遇、場景或情節片段..." 
+                                        class="auto-expand auto-expand-lg w-full px-4 py-3 bg-white border border-stone-300 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            bindAllAutoExpand();
+        }
+
+        // 4. 核心功能一：文字框隨輸入字數自動放大縮小 (支援中文組字輸入法與手機鍵盤)
+        function adjustTextareaHeight(textarea) {
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            const minHeight = textarea.classList.contains('auto-expand-lg') ? 96 : 46;
+            const newHeight = Math.max(textarea.scrollHeight, minHeight);
+            textarea.style.height = newHeight + 'px';
+        }
+
+        function bindAllAutoExpand() {
+            const textareas = document.querySelectorAll('textarea.auto-expand');
+            textareas.forEach(ta => {
+                // 初始化高度
+                adjustTextareaHeight(ta);
+                // 監聽輸入、組字結束與貼上事件，確保手機中文輸入法即時伸縮
+                ta.removeEventListener('input', handleTextareaInput);
+                ta.removeEventListener('compositionend', handleTextareaInput);
+                ta.addEventListener('input', handleTextareaInput);
+                ta.addEventListener('compositionend', handleTextareaInput);
+            });
+        }
+
+        function handleTextareaInput(e) {
+            adjustTextareaHeight(e.target);
+        }
+
+        // 視窗大小改變或手機旋轉螢幕時重新計算文字框高度
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('textarea.auto-expand').forEach(adjustTextareaHeight);
+        });
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                document.querySelectorAll('textarea.auto-expand').forEach(adjustTextareaHeight);
+            }, 200);
+        });
+
+        // 5. 核心功能二：學生送出學習單至後台
+        window.submitWorksheet = async function() {
+            const sClass = document.getElementById('studentClass').value.trim();
+            const sSeat = document.getElementById('studentSeat').value.trim();
+            const sName = document.getElementById('studentName').value.trim();
+
+            if (!sClass || !sSeat || !sName) {
+                showToast("請完整填寫「班級」、「座號」與「姓名」後再送出！", "error");
+                document.getElementById('studentClass').focus();
+                return;
+            }
+
+            // 收集所有年代的作答內容
+            const answers = {};
+            let hasAnyAnswer = false;
+            WORKSHEET_ITEMS.forEach(item => {
+                const eventVal = document.getElementById(`event_${item.id}`).value.trim();
+                const movieVal = document.getElementById(`movie_${item.id}`).value.trim();
+                if (eventVal || movieVal) hasAnyAnswer = true;
+                answers[item.id] = {
+                    eventName: eventVal,
+                    movieScene: movieVal,
+                    teacherNote: "" // 預留單題教師批註欄位
+                };
+            });
+
+            if (!hasAnyAnswer) {
+                showToast("學習單內容尚未填寫，請至少完成一項紀錄再送出！", "error");
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>傳送中...`;
+
+            const now = Date.now();
+            const formattedDate = new Date(now).toLocaleString('zh-TW', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            const submissionData = {
+                studentClass: sClass,
+                studentSeat: sSeat,
+                studentName: sName,
+                submittedAt: now,
+                submittedTimeStr: formattedDate,
+                answers: answers,
+                status: 'ungraded', // ungraded | graded
+                score: null,
+                teacherComment: ""
+            };
+
+            try {
+                if (useCloudStorage && currentUser && db) {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'worksheets');
+                    await addDoc(colRef, submissionData);
+                } else {
+                    // 單機模式備援
+                    submissionData.id = 'local_' + now;
+                    submissionsList.unshift(submissionData);
+                    updateTeacherStats();
+                    renderTeacherTable();
+                }
+
+                showToast(`太棒了！${sName} 同學的學習單已成功送交至教師後台！`, "success");
+                resetStudentFormFields();
+            } catch (err) {
+                console.error("送出失敗：", err);
+                showToast("傳送過程發生錯誤，請稍後再試。", "error");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i>完成`;
+            }
+        };
+
+        // 清空學生表單
+        function resetStudentFormFields() {
+            document.getElementById('studentClass').value = '';
+            document.getElementById('studentSeat').value = '';
+            document.getElementById('studentName').value = '';
+            WORKSHEET_ITEMS.forEach(item => {
+                const ta1 = document.getElementById(`event_${item.id}`);
+                const ta2 = document.getElementById(`movie_${item.id}`);
+                ta1.value = '';
+                ta2.value = '';
+                adjustTextareaHeight(ta1);
+                adjustTextareaHeight(ta2);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.confirmResetForm = function() {
+            showCustomConfirm("清空學習單", "確定要清除目前畫面上所有已填寫的文字嗎？此動作無法復原。", () => {
+                resetStudentFormFields();
+                showToast("表單已清空", "info");
+            });
+        };
+
+        // 6. 核心功能三：教師密碼驗證 (密碼：12345) 與後台管理
+        window.openPasswordModal = function() {
+            // 若已登入直接切換
+            if (!document.getElementById('teacherView').classList.contains('hidden')) return;
+            document.getElementById('teacherPasswordInput').value = '';
+            document.getElementById('passwordErrorMsg').classList.add('hidden');
+            document.getElementById('passwordModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('teacherPasswordInput').focus(), 100);
+        };
+
+        window.closePasswordModal = function() {
+            document.getElementById('passwordModal').classList.add('hidden');
+        };
+
+        window.verifyTeacherPassword = function(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('teacherPasswordInput').value;
+            if (pwd === '12345') {
+                closePasswordModal();
+                switchToTeacherView();
+                showToast("歡迎進入教師批改後台", "success");
+            } else {
+                const errEl = document.getElementById('passwordErrorMsg');
+                errEl.classList.remove('hidden');
+                document.getElementById('teacherPasswordInput').value = '';
+                document.getElementById('teacherPasswordInput').focus();
+            }
+        };
+
+        window.switchToTeacherView = function() {
+            document.getElementById('studentView').classList.add('hidden');
+            document.getElementById('teacherView').classList.remove('hidden');
+            document.getElementById('btnStudentView').classList.replace('bg-red-800', 'bg-stone-700');
+            document.getElementById('btnTeacherModal').classList.replace('bg-stone-700', 'bg-amber-600');
+            updateTeacherStats();
+            renderTeacherTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.switchToStudentView = function() {
+            document.getElementById('teacherView').classList.add('hidden');
+            document.getElementById('studentView').classList.remove('hidden');
+            document.getElementById('btnStudentView').classList.replace('bg-stone-700', 'bg-red-800');
+            document.getElementById('btnTeacherModal').classList.replace('bg-amber-600', 'bg-stone-700');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.logoutTeacher = function() {
+            switchToStudentView();
+            showToast("已登出教師後台", "info");
+        };
+
+        function updateTeacherStats() {
+            const total = submissionsList.length;
+            const graded = submissionsList.filter(s => s.status === 'graded').length;
+            const totalEl = document.getElementById('statTotalCount');
+            const gradedEl = document.getElementById('statGradedCount');
+            if (totalEl) totalEl.textContent = total;
+            if (gradedEl) gradedEl.textContent = graded;
+        }
+
+        // 渲染教師後台學生列表 (同時支援桌面表格與手機卡片)
+        window.renderTeacherTable = function() {
+            const tbody = document.getElementById('submissionsTableBody');
+            const mobileContainer = document.getElementById('submissionsMobileCards');
+            const emptyMsg = document.getElementById('emptySubmissionsMsg');
+            const keyword = document.getElementById('searchSubmissionInput').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('filterStatusSelect').value;
+
+            const filtered = submissionsList.filter(sub => {
+                const matchKeyword = !keyword || 
+                    (sub.studentClass && sub.studentClass.toLowerCase().includes(keyword)) ||
+                    (sub.studentSeat && sub.studentSeat.toLowerCase().includes(keyword)) ||
+                    (sub.studentName && sub.studentName.toLowerCase().includes(keyword));
+                const matchStatus = statusFilter === 'all' || sub.status === statusFilter;
+                return matchKeyword && matchStatus;
+            });
+
+            tbody.innerHTML = '';
+            mobileContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            emptyMsg.classList.add('hidden');
+
+            filtered.forEach(sub => {
+                const isGraded = sub.status === 'graded';
+                const statusBadge = isGraded 
+                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check mr-1"></i>已批改</span>`
+                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800"><i class="fa-regular fa-clock mr-1"></i>待批改</span>`;
+                const scoreBadge = (sub.score !== null && sub.score !== undefined && sub.score !== '')
+                    ? `<span class="font-bold text-base text-red-800">${sub.score} <span class="text-xs font-normal text-stone-500">分</span></span>`
+                    : `<span class="text-stone-400 text-xs">尚未評分</span>`;
+
+                // 1. 桌面版表格列
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-amber-50/50 transition";
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4">${statusBadge}</td>
+                    <td class="py-3.5 px-4 font-medium text-stone-800">${escapeHtml(sub.studentClass)}</td>
+                    <td class="py-3.5 px-4 text-stone-600">${escapeHtml(sub.studentSeat)}</td>
+                    <td class="py-3.5 px-4 font-bold text-stone-900">${escapeHtml(sub.studentName)}</td>
+                    <td class="py-3.5 px-4 text-stone-500 text-xs">${escapeHtml(sub.submittedTimeStr || '')}</td>
+                    <td class="py-3.5 px-4">${scoreBadge}</td>
+                    <td class="py-3.5 px-4 text-right">
+                        <button onclick="openGradingModal('${sub.id}')" class="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-red-800 text-white text-xs font-bold shadow-sm transition">
+                            <i class="fa-solid fa-pen-clip mr-1"></i>檢視與批改
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                // 2. 手機版觸控卡片
+                const mCard = document.createElement('div');
+                mCard.className = "p-4 bg-white active:bg-amber-50/60 transition flex flex-col gap-3";
+                mCard.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            ${statusBadge}
+                            <span class="text-xs text-stone-500">${escapeHtml(sub.studentClass)} · ${escapeHtml(sub.studentSeat)}號</span>
+                        </div>
+                        <div>${scoreBadge}</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-base text-stone-900">${escapeHtml(sub.studentName)}</div>
+                            <div class="text-[11px] text-stone-400 mt-0.5">${escapeHtml(sub.submittedTimeStr || '')}</div>
+                        </div>
+                        <button onclick="openGradingModal('${sub.id}')" class="px-4 py-2.5 rounded-xl bg-stone-800 active:bg-red-800 text-white text-xs font-bold shadow-sm transition min-h-[40px]">
+                            <i class="fa-solid fa-pen-clip mr-1"></i>檢視批改
+                        </button>
+                    </div>
+                `;
+                mobileContainer.appendChild(mCard);
+            });
+        };
+
+        // 7. 開啟批改視窗並載入學生填答內容
+        window.openGradingModal = function(id) {
+            const sub = submissionsList.find(s => s.id === id);
+            if (!sub) return;
+            currentGradingId = id;
+
+            document.getElementById('gradingStudentTitle').textContent = 
+                `班級：${sub.studentClass} ｜ 座號：${sub.studentSeat} ｜ 姓名：${sub.studentName}`;
+            
+            document.getElementById('gradingScoreInput').value = (sub.score !== null && sub.score !== undefined) ? sub.score : '';
+            const commentInput = document.getElementById('gradingCommentInput');
+            commentInput.value = sub.teacherComment || '';
+
+            const modalBody = document.getElementById('gradingModalBody');
+            modalBody.innerHTML = '';
+
+            WORKSHEET_ITEMS.forEach((item, idx) => {
+                const ans = (sub.answers && sub.answers[item.id]) ? sub.answers[item.id] : { eventName: '', movieScene: '', teacherNote: '' };
+                
+                const itemBlock = document.createElement('div');
+                itemBlock.className = "bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden";
+                itemBlock.innerHTML = `
+                    <div class="bg-stone-100 px-4 py-2.5 border-b border-stone-200 flex flex-wrap justify-between items-center gap-2">
+                        <span class="font-bold text-stone-800 text-sm">【${item.era}】</span>
+                        <span class="text-xs text-stone-500 bg-white px-2.5 py-1 rounded border border-stone-200">
+                            參考事件：<strong class="text-emerald-700">${item.referenceAnswer}</strong>
+                        </span>
+                    </div>
+                    <div class="p-4 space-y-3 text-sm">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
+                                <span class="text-xs font-bold text-stone-500 block mb-1">學生填寫之事件名稱：</span>
+                                <p class="font-bold text-stone-900 whitespace-pre-wrap">${ans.eventName ? escapeHtml(ans.eventName) : '<span class="text-stone-400 italic">（未填寫）</span>'}</p>
+                            </div>
+                            <div class="bg-amber-50/40 p-3 rounded-lg border border-amber-200/70">
+                                <label class="text-xs font-bold text-amber-900 block mb-1">
+                                    <i class="fa-solid fa-comment-dots mr-1"></i>教師單題批註（選填）：
+                                </label>
+                                <textarea id="note_${item.id}" rows="1" placeholder="針對此題給予修正或鼓勵..." class="auto-expand w-full px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500">${escapeHtml(ans.teacherNote || '')}</textarea>
+                            </div>
+                        </div>
+                        <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
+                            <span class="text-xs font-bold text-stone-500 block mb-1">學生電影情節紀錄：</span>
+                            <p class="text-stone-800 leading-relaxed whitespace-pre-wrap">${ans.movieScene ? escapeHtml(ans.movieScene) : '<span class="text-stone-400 italic">（未填寫）</span>'}</p>
+                        </div>
+                    </div>
+                `;
+                modalBody.appendChild(itemBlock);
+            });
+
+            document.getElementById('gradingModal').classList.remove('hidden');
+            bindAllAutoExpand();
+        };
+
+        window.closeGradingModal = function() {
+            document.getElementById('gradingModal').classList.add('hidden');
+            currentGradingId = null;
+        };
+
+        // 8. 儲存教師批改、單題批註與總分
+        window.saveGrading = async function() {
+            if (!currentGradingId) return;
+            const subIndex = submissionsList.findIndex(s => s.id === currentGradingId);
+            if (subIndex === -1) return;
+
+            const scoreRaw = document.getElementById('gradingScoreInput').value.trim();
+            const scoreVal = scoreRaw === '' ? null : Number(scoreRaw);
+            const teacherComment = document.getElementById('gradingCommentInput').value.trim();
+
+            if (scoreVal !== null && (isNaN(scoreVal) || scoreVal < 0 || scoreVal > 100)) {
+                showToast("請輸入 0 到 100 之間的有效分數！", "error");
+                return;
+            }
+
+            // 更新各題教師批註
+            const updatedAnswers = JSON.parse(JSON.stringify(submissionsList[subIndex].answers || {}));
+            WORKSHEET_ITEMS.forEach(item => {
+                const noteEl = document.getElementById(`note_${item.id}`);
+                if (!updatedAnswers[item.id]) {
+                    updatedAnswers[item.id] = { eventName: '', movieScene: '', teacherNote: '' };
+                }
+                updatedAnswers[item.id].teacherNote = noteEl ? noteEl.value.trim() : '';
+            });
+
+            const updatePayload = {
+                answers: updatedAnswers,
+                score: scoreVal,
+                teacherComment: teacherComment,
+                status: 'graded',
+                gradedAt: Date.now()
+            };
+
+            try {
+                if (useCloudStorage && currentUser && db && !currentGradingId.startsWith('local_')) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'worksheets', currentGradingId);
+                    await updateDoc(docRef, updatePayload);
+                } else {
+                    submissionsList[subIndex] = { ...submissionsList[subIndex], ...updatePayload };
+                    updateTeacherStats();
+                    renderTeacherTable();
+                }
+
+                showToast("批改結果與分數已成功儲存！", "success");
+                closeGradingModal();
+            } catch (err) {
+                console.error("儲存批改失敗：", err);
+                showToast("儲存失敗，請檢查連線後再試。", "error");
+            }
+        };
+
+        // 刪除單筆作答紀錄
+        window.deleteCurrentSubmission = function() {
+            if (!currentGradingId) return;
+            showCustomConfirm("刪除作答紀錄", "確定要永久刪除這位學生的作答紀錄嗎？刪除後無法復原。", async () => {
+                try {
+                    if (useCloudStorage && currentUser && db && !currentGradingId.startsWith('local_')) {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'worksheets', currentGradingId);
+                        await deleteDoc(docRef);
+                    } else {
+                        submissionsList = submissionsList.filter(s => s.id !== currentGradingId);
+                        updateTeacherStats();
+                        renderTeacherTable();
+                    }
+                    showToast("已刪除該筆紀錄", "info");
+                    closeGradingModal();
+                } catch (err) {
+                    console.error("刪除失敗：", err);
+                    showToast("刪除失敗，請稍後再試。", "error");
+                }
+            });
+        };
+
+        // 匯出全班成績與作答 CSV 檔
+        window.exportToCSV = function() {
+            if (submissionsList.length === 0) {
+                showToast("目前沒有資料可供匯出", "error");
+                return;
+            }
+
+            const headers = ["狀態", "班級", "座號", "姓名", "繳交時間", "總分", "教師總評"];
+            WORKSHEET_ITEMS.forEach(item => {
+                headers.push(`${item.era}-事件名稱`, `${item.era}-電影情節`, `${item.era}-教師批註`);
+            });
+
+            const rows = [headers];
+            submissionsList.forEach(sub => {
+                const row = [
+                    sub.status === 'graded' ? '已批改' : '待批改',
+                    sub.studentClass || '',
+                    sub.studentSeat || '',
+                    sub.studentName || '',
+                    sub.submittedTimeStr || '',
+                    sub.score !== null && sub.score !== undefined ? sub.score : '',
+                    sub.teacherComment || ''
+                ];
+                WORKSHEET_ITEMS.forEach(item => {
+                    const ans = (sub.answers && sub.answers[item.id]) || {};
+                    row.push(ans.eventName || '', ans.movieScene || '', ans.teacherNote || '');
+                });
+                rows.push(row);
+            });
+
+            // 加上 BOM 確保 Excel 開啟中文不亂碼
+            const csvContent = "\uFEFF" + rows.map(r => 
+                r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+            ).join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `活著歷史學習單成績總表_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("CSV 成績報表已下載！", "success");
+        };
+
+        // 輔助工具函式：XSS 防護、Toast 提示、自訂確認視窗
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                success: "bg-emerald-800 text-white border-emerald-600",
+                error: "bg-red-800 text-white border-red-600",
+                info: "bg-stone-800 text-white border-stone-600"
+            };
+            const icons = {
+                success: "fa-circle-check",
+                error: "fa-circle-exclamation",
+                info: "fa-circle-info"
+            };
+
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl shadow-xl border ${colors[type]} text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]} text-base"></i><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function showCustomConfirm(title, message, onConfirm) {
+            const modal = document.getElementById('customConfirmModal');
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            modal.classList.remove('hidden');
+
+            const okBtn = document.getElementById('confirmModalOk');
+            const cancelBtn = document.getElementById('confirmModalCancel');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+            };
+
+            cancelBtn.onclick = cleanup;
+            okBtn.onclick = () => {
+                cleanup();
+                onConfirm();
+            };
+        }
+
+        // 啟動應用程式
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStudentQuestions();
+            initStorage();
+        });
+    </script>
+</body>
+</html>
